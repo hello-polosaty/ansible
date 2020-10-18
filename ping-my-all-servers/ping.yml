@@ -2,7 +2,6 @@
 - name: ping my servers
   hosts: all_servers
 
-
   tasks:
     - block: ################################# ping windows servers ###########################################
        - win_ping: 
