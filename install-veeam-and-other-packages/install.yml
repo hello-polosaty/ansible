@@ -5,7 +5,7 @@
 
   tasks:
    
-  - block: ################ Ubuntu Family ################################################################## 
+  - block: ################ Debian Family ################################################################## 
   
       - name: check version veeam
         shell: veeamconfig --version
@@ -15,7 +15,7 @@
       - block:      
 
         - name: download veeam
-          get_url: url="!!!!!insert the package url without exclamation marks !!!!!!!!!" dest=/var/veeam.deb
+          get_url: url="!!!!!insert the package url without exclamation marks!!!!!!!!!" dest=/var/veeam.deb
 
         - name: install veeam
           shell: dpkg -i /var/veeam.deb ; apt-get update ; apt-get install veeam -y
