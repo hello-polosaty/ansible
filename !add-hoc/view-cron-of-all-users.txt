@@ -1,0 +1,3 @@
+1. ansible all_linux_servers -m copy -a "src=script_cron.sh dest=/var/script_cron.sh mode=777" --ask-vault-pass -b
+2. ansible all_linux_servers -m shell -a "bash /var/script_cron.sh" --ask-vault-pass -b > cron.log
+3. ansible all_linux_servers -m file -a "path=/var/script_cron.sh state=absent" --ask-vault-pass -b
