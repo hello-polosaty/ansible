@@ -1,0 +1,17 @@
+---
+- name: delete some lines in fstab and cron with regexp
+  hosts: linux_servers
+  become: yes
+
+  tasks:
+  - name: ######### delete line in /var/spool/cron/crontabs/root ######################
+    lineinfile:
+      path: /var/spool/cron/crontabs/root
+      state: absent
+      regexp: '^@reboot'
+
+  - name: ########## delete line in /etc/fstab ########################################
+    lineinfile:
+      path: /etc/fstab
+      state: absent
+      regexp: '^//172.16.0.5'
