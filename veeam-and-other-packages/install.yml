@@ -1,0 +1,94 @@
+---
+- name: wget and install veeam package
+  hosts: linux_servers
+  become: yes
+
+
+  tasks:
+   
+  - block: ################ Ubuntu Family ################################################################## 
+  
+      - name: check version veeam
+        shell: veeamconfig --version
+        register: version
+        ignore_errors: yes       
+       
+      - block:      
+
+        - name: download veeam
+          get_url: url="!!!!!insert the package url without exclamation marks !!!!!!!!!" dest=/var/veeam.deb
+
+        - name: install veeam
+          shell: dpkg -i /var/veeam.deb ; apt-get update ; apt-get install veeam -y
+
+        - name: delete package veeam
+          file: 
+            path: /var/veeam.deb
+            state: absent 
+        
+        when: version.rc != 0
+        
+
+      - name: install mc, net-tools, cifs-utils
+        apt:
+          name:
+             - mc
+             - net-tools
+             - cifs-utils
+          state: present
+
+          install_recommends: yes
+    
+    when:  ansible_distribution_file_variety == "Debian"
+
+  - block: ################ RedHat Family ####################################################################
+
+      - name: check version veeam
+        shell: veeamconfig --version
+        register: version
+        ignore_errors: yes
+
+      - block: ################################### Centos 7 or Centos 8 ######################################
+            
+          - block: ################################ Download for Centos 7 ####################################
+
+                - name: download veeam
+                  get_url: url="!!!!insert the package url without exclamation marks!!!!!" dest=/var/veeam.rpm
+
+                - name: install veeam
+                  shell: rpm -ivh /var/veeam.rpm ; yum check-update -y ; yum install veeam -y
+
+                - name: delete package veeam
+                  file:
+                      path: /var/veeam.rpm
+                      state: absent
+
+            when: ansible_distribution_file_variety == "RedHat" and ansible_distribution_major_version == "7"
+
+          - block: ################################ Download for Centos 8 #####################################
+
+                - name: download veeam
+                  get_url: url="!!!!!insert the package url without exclamation marks!!!!!" dest=/var/veeam.rpm
+
+                - name: install veeam
+                  shell: rpm -ivh /var/veeam.rpm && yum check-update -y && yum install veeam -y
+
+                - name: delete package veeam
+                  file:
+                      path: /var/veeam.rpm
+                      state: absent
+
+            when: ansible_distribution_file_variety == "RedHat" and ansible_distribution_major_version == "8"
+
+        when: version.rc != 0
+
+
+      - name: install mc, net-tools, cifs-utils
+        yum:
+          name:
+             - mc
+             - net-tools
+             - cifs-utils
+          state: present
+
+    when: ansible_distribution_file_variety == "RedHat"
