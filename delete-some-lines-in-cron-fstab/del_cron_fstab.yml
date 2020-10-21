@@ -4,13 +4,13 @@
   become: yes
 
   tasks:
-  - name: ######### delete line in /var/spool/cron/crontabs/root ######################
+  - name: delete line in /var/spool/cron/crontabs/root
     lineinfile:
       path: /var/spool/cron/crontabs/root
       state: absent
       regexp: '^@reboot'
 
-  - name: ########## delete line in /etc/fstab ########################################
+  - name: delete line in /etc/fstab
     lineinfile:
       path: /etc/fstab
       state: absent
