@@ -1,0 +1,218 @@
+---
+  - block: install on UBUNTU20
+      - name: install zabbix server 
+        apt:
+          deb: "{{ zabbix_server_ubuntu20 }}"
+
+      - name: install mysql-server
+        package:
+           name:
+             - mysql-server
+             - python3-pymysql
+           state: present
+           update_cache: yes
+
+      - name: install zabbix-server-mysql zabbix-frontend-php zabbix-nginx-conf zabbix-agent
+        package:
+           name:
+             - zabbix-server-mysql
+             - zabbix-frontend-php
+             - zabbix-nginx-conf
+             - zabbix-agent
+           state: present
+
+      - name: start serivce mysql Ubuntu
+        service:
+          name: mysql
+          state: started
+          enabled: yes
+
+      - name: set the root password to mysql
+        mysql_user:
+           login_user      : "{{ mysql_root_user }}"
+           login_password  : "{{ mysql_root_password }}"
+           user            : "{{ mysql_root_user }}"
+           password        : "{{ mysql_root_password }}"
+           login_unix_socket: /var/run/mysqld/mysqld.sock  
+
+      - name: create zabbix user
+        mysql_user:
+           user            : "{{ zabbix_admin }}"
+           password        : "{{ zabbix_admin_password }}"
+           login_user      : "{{ mysql_root_user }}"
+           login_password  : "{{ mysql_root_password }}"
+           priv            : '*.*:ALL,GRANT'
+           state           : present
+
+      - name: create zabbix db
+        mysql_db:
+          login_user       : "{{ zabbix_admin }}"
+          login_password   : "{{ zabbix_admin_password }}"
+          db               : "{{ mysql_db_name }}"
+          encoding         : utf8
+          collation        : utf8_bin
+          state            : present
+          login_unix_socket: /var/run/mysqld/mysqld.sock
+        register           : new_zabbix_mysql_database
+
+      - name: import zabbix configuration
+        shell: zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql -u "{{ zabbix_admin }}"  -p"{{ zabbix_admin_password }}" "{{ mysql_db_name }}"
+        when: new_zabbix_mysql_database.changed
+
+      - name: replace zabbix nginx.conf
+        template:
+          src=nginx.conf.j2
+          dest=/etc/zabbix/nginx.conf
+
+      - name: replace zabbix_server.conf
+        template:
+          src=ubuntu-php-fpm.conf.j2
+          dest=/etc/zabbix/php-fpm.conf
+
+      - name: replace zabbix_server.conf
+        template:
+          src=zabbix_server.conf.j2
+          dest=/etc/zabbix/zabbix_server.conf
+   
+      - name: restarted services  
+        service:
+           name: "{{ item }}"
+           state: restarted
+        with_items:
+            - zabbix-server
+            - zabbix-agent
+            - nginx
+            - php7.4-fpm
+
+      - name: enable services
+        service:
+          name: "{{ item }}"
+          enabled: yes
+          masked: no
+        with_items:
+            - zabbix-agent
+            - zabbix-server
+            - nginx
+            - php7.4-fpm
+
+      - name: allow zabbix ports
+        community.general.ufw:
+          rule: allow
+          port: 10050:10051
+          proto: tcp
+
+    when: ansible_distribution_file_variety == "Debian"   
+
+  - block: install on CENTOS8 
+
+     - name: install zabbix server
+       package:
+         name: "{{ zabbix_server_centos8 }}"
+   
+     - name: install mysql-server
+       package:
+         name:
+           - mysql-server
+           - python3-PyMySQL
+         state: present
+
+     - name: install zabbix-server-mysql zabbix-web-mysql zabbix-nginx-conf zabbix-agent
+       package:
+         name: 
+           - zabbix-server-mysql
+           - zabbix-web-mysql
+           - zabbix-nginx-conf
+           - zabbix-agent
+         state: present
+     
+     - name: start serivce mysql Ubuntu
+       service:
+         name: mysqld
+         state: started
+         enabled: yes
+  
+     - name: set the root password to mysql
+       mysql_user:
+         login_user        : "{{ mysql_root_user }}"
+         login_password    : "{{ mysql_root_password }}"
+         user              : "{{ mysql_root_user }}"
+         password          : "{{ mysql_root_password }}"
+         login_unix_socket : /var/lib/mysql/mysql.sock
+
+     - name: create zabbix user
+       mysql_user:
+         user              : "{{ zabbix_admin }}"
+         password          : "{{ zabbix_admin_password }}"
+         login_user        : "{{ mysql_root_user }}"
+         login_password    : "{{ mysql_root_password }}"
+         priv              : '*.*:ALL,GRANT'
+         state: present
+
+     - name: create zabbix db 
+       community.mysql.mysql_db:
+         login_user        : "{{ zabbix_admin }}"
+         login_password    : "{{ zabbix_admin_password }}"
+         name              : "{{ mysql_db_name }}"
+         encoding          : utf8
+         collation         : utf8_bin
+         state             : present
+         login_unix_socket : /var/lib/mysql/mysql.sock
+       register            : new_zabbix_mysql_database
+
+     - name: import zabbix configuration
+       shell: zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql -u "{{ zabbix_admin }}"  -p"{{ zabbix_admin_password }}" "{{ mysql_db_name }}"    
+       when: new_zabbix_mysql_database.changed
+
+     - name: replace zabbix.conf
+       template:
+         src=centos_zabbix.j2
+         dest=/etc/nginx/conf.d/zabbix.conf
+
+     - name: replace php-fpm.d
+       template:
+         src=centos-php-fpm.conf.j2
+         dest=/etc/php-fpm.d/zabbix.conf
+
+     - name: replace zabbix_server.conf
+       template:
+          src=zabbix_server.conf.j2
+          dest=/etc/zabbix/zabbix_server.conf
+  
+     - name: disable SELinux
+       shell: setenforce 0 && sed -i 's/^SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
+ 
+     - name: allow zabbix ports
+       firewalld:
+         port: 10050-10051/tcp
+         permanent: true
+         state: enabled
+
+     - name: firewalld reload
+       command: systemctl reload firewalld
+       ignore_errors: yes       
+
+     - name: restart services
+       service:
+         name: "{{ item }}"
+         state: restarted
+       with_items:
+            - zabbix-server
+            - zabbix-agent
+            - nginx
+            - php-fpm
+
+     - name: enable services
+       service:
+          name: "{{ item }}"
+          enabled: yes
+          masked: no
+       with_items:
+            - zabbix-agent
+            - zabbix-server
+            - nginx
+            - php-fpm
+   
+    when: ansible_distribution_file_variety == "RedHat"
+
+
+

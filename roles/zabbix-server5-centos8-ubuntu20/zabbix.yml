@@ -1,0 +1,12 @@
+---
+- name: Install Zabbix Server 5 Mysql
+  hosts: servers
+  become: yes
+
+  roles:
+    - { role: zabbix-server5-centos8-ubuntu20 }
+
+
+
+
+

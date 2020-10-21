@@ -1,0 +1,10 @@
+---
+# defaults file for zabbix-server5-centos8-ubuntu20
+
+zabbix_server_ubuntu20              : https://repo.zabbix.com/zabbix/5.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_5.0-1+focal_all.deb
+zabbix_server_centos8               : https://repo.zabbix.com/zabbix/5.0/rhel/8/x86_64/zabbix-release-5.0-1.el8.noarch.rpm
+server_name                         : aaa.office.iss
+
+
+## Timezone 
+timezone                            : Europe/Moscow
