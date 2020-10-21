@@ -1,0 +1,23 @@
+---
+# defaults file for zabbix-agent-all-os
+#Windows
+zabbix_agent_url         : 'https://www.zabbix.com/downloads/4.0.25/zabbix_agent-4.0.25-windows-amd64-openssl.zip'
+zabbix_agent_ip          : '0.0.0.0'
+zabbix_agent_port        : '10050'
+zabbix_agent_timeout     : '10'
+zabbix_server_ip         : '172.16.0.62'
+
+#Debian
+debian8                  : https://repo.zabbix.com/zabbix/4.0/debian/pool/main/z/zabbix-release/zabbix-release_4.0-3+jessie_all.deb
+debian9                  : https://repo.zabbix.com/zabbix/4.0/debian/pool/main/z/zabbix-release/zabbix-release_4.0-3+stretch_all.deb
+debian10                 : https://repo.zabbix.com/zabbix/4.0/debian/pool/main/z/zabbix-release/zabbix-release_4.0-3+buster_all.deb
+
+#Ubuntu
+ubuntu14                 : https://repo.zabbix.com/zabbix/4.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_4.0-3+trusty_all.deb
+ubuntu16                 : https://repo.zabbix.com/zabbix/4.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_4.0-3+xenial_all.deb
+ubuntu18                 : https://repo.zabbix.com/zabbix/4.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_4.0-3+bionic_all.deb
+ubuntu20                 : https://repo.zabbix.com/zabbix/4.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_4.0-3+focal_all.deb
+
+#Centos
+centos7                  : https://repo.zabbix.com/zabbix/4.0/rhel/7/x86_64/zabbix-release-4.0-2.el7.noarch.rpm
+centos8                  : https://repo.zabbix.com/zabbix/4.0/rhel/8/x86_64/zabbix-release-4.0-2.el8.noarch.rpm

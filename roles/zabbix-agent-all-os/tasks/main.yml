@@ -1,0 +1,202 @@
+---
+# tasks file for zabbix-agent-all-os
+- block: ################################################### Ubuntu 14 ############################################
+
+       - name: ### wget 14 ###    
+         apt:        
+           deb: "{{ ubuntu14 }}"
+
+       - name: ### Install on Debian/Ubuntu ###
+         apt:
+           name: zabbix-agent
+           state: present
+  when: ansible_os_family == "Debian" and ansible_distribution_major_version == "14"
+
+- block: ################################################# Ubuntu 16 ###############################################
+ 
+       - name: ### wget 16 ###
+         apt:
+           deb: "{{ ubuntu16 }}"
+
+       - name: ### Install on Debian/Ubuntu ###
+         apt:
+           name: zabbix-agent
+           state: present
+  when: ansible_os_family == "Debian" and ansible_distribution_major_version == "16"
+
+- block: ################################################# Ubuntu 18 ###############################################
+
+       - name: ### wget 18 ###
+         apt:
+           deb: "{{ ubuntu18 }}"
+
+       - name: ### Install on Debian/Ubuntu ###
+         apt:
+           name: zabbix-agent
+           state: present
+  when: ansible_os_family == "Debian" and ansible_distribution_major_version == "18"
+
+- block: ################################################# Ubuntu 20 ###############################################
+
+       - name: ### wget 20 ###
+         apt:
+           deb: "{{ ubuntu20 }}"
+           state: present
+
+       - name: ### Install on Debian/Ubuntu ###
+         apt:
+           name: zabbix-agent
+           state: present
+  when: ansible_os_family == "Debian" and ansible_distribution_major_version == "20"
+
+- block: ################################################# Debian 9 ###############################################
+
+       - name: ### wget 9 ###
+         apt:
+           deb: "{{ debian9 }}"
+
+       - name: ### Install on Debian/Ubuntu ###
+         apt:
+           name: zabbix-agent
+           state: present
+  when: ansible_os_family == "Debian" and ansible_distribution_major_version == "9"
+
+- block: ################################################# Debian 10 ###############################################
+
+       - name: ### wget 10 ###
+         apt:
+           deb: "{{ debian10 }}"
+
+       - name: ### Install on Debian/Ubuntu ###
+         apt:
+           name: zabbix-agent
+           state: present
+  when: ansible_os_family == "Debian" and ansible_distribution_major_version == "10"
+
+- block: ################################################# Debian 8 ###############################################
+
+       - name: ### wget 8 ###
+         apt:
+           deb: "{{ debian8 }}"
+
+       - name: ### Install on Debian/Ubuntu ###
+         apt:
+           name: zabbix-agent
+           state: present
+  when: ansible_os_family == "Debian" and ansible_distribution_major_version == "8"
+
+- block: ################################################### Centos 8 #############################################
+      - name: ### Intall on Centos 8 ###
+        package:
+          name: "{{ centos8 }}"       
+          state: present
+
+      - name: ### Install on Centos ###
+        package:
+           name: zabbix-agent
+           state: present
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "8" 
+
+- block: ################################################### Centos 7 ##############################################
+      - name: ### Install on Centos ###
+        package:
+          name: "{{ centos7 }}"
+          state: present
+
+      - name: ### Install on Centos ###
+        package:
+           name: zabbix-agent
+           state: present
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7" 
+
+- block: ################################################ Replace template for Linux ################################
+
+      - name: ### template zabbix_agentd for linux ###
+        template: 
+           src: zabbix_agentd.linux.conf.j2
+           dest: /etc/zabbix/zabbix_agentd.conf
+  
+      - name: ### stop zabbix agent ###
+        service:
+           name: zabbix-agent
+           state: stopped
+  
+      - name: ### starte & enable zabbix agent ###
+        service:
+           name: zabbix-agent
+           state: started
+           enabled: yes
+     
+  when: ansible_os_family == "RedHat" or ansible_os_family == "Sangoma" or ansible_os_family == "Debian"
+
+- block: ################################################ Firewalld Centos #########################################
+   
+      - name: Allow zabbix ports Centos
+        firewalld:
+           port: 10050-10051/tcp
+           permanent: true
+           state: enabled
+
+      - name: firewalld reload
+        command: systemctl reload firewalld
+        ignore_errors: yes
+
+  when: ansible_os_family == "RedHat" or ansible_os_family == "Sangoma"
+
+- block: ################################################ Firewall Ubuntu ###########################################
+
+      - name: Allow zabbix ports Ubuntu
+        community.general.ufw:
+          rule: allow
+          port: 10050:10051
+          proto: tcp
+
+  when: ansible_distribution == "Ubuntu"
+
+- block: ######################################################## Windosws ############################################         
+  
+      - name: ### Create zabbix directory ###
+        win_file:
+           path: 'C:\Zabbix\conf\conf.d'
+           state: directory
+        register: download_zabbix_agent
+
+      - name: ### Download zabbix-agent ###
+        win_get_url:
+          url: "{{ zabbix_agent_url }}"
+          dest: C:\Zabbix\zabbix_agent.zip
+        when: download_zabbix_agent is changed
+        register: unzip_zabbix_agent
+
+      - name: ### Unzip zabbix-agent ###
+        win_unzip:
+          src: C:\Zabbix\zabbix_agent.zip
+          dest: C:\Zabbix\
+          delete_archive: true
+        when: unzip_zabbix_agent is changed
+        register: install_zabbix
+
+      - name: ### Install zabbix-agent ###
+        win_command: CMD /C "C:\Zabbix\bin\zabbix_agentd.exe --config C:\Zabbix\conf\zabbix_agentd.win.conf --install"
+        when: install_zabbix is changed
+
+      - name: ### Make config from template ###
+        win_template:
+            src: templates/zabbix_agentd.win.conf.j2
+            dest: 'C:\Zabbix\conf\zabbix_agentd.win.conf'
+            force: true
+        notify:
+          - Stop zabbix-agent
+          - Start zabbix-agent
+
+      - name: ### Add firewall rule for {{ zabbix_agent_port }} port ###
+        win_firewall_rule:
+          name: 'Zabbix-Agent'
+          localport: "{{ zabbix_agent_port }}"
+          action: allow
+          direction: in
+          protocol: tcp
+          remoteip: "{{ zabbix_server_ip }}"
+          state: present
+          enabled: true
+  when: ansible_os_family == "Windows"

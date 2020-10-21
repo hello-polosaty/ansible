@@ -1,0 +1,11 @@
+---
+# handlers file for zabbix-agent-all-os
+
+- name: Stop zabbix-agent
+  win_command: CMD /C "C:\Zabbix\bin\zabbix_agentd.exe --config C:\Zabbix\conf\zabbix_agentd.win.conf --stop"
+  changed_when: true
+  notify: Start zabbix-agent
+  ignore_errors: true
+
+- name: Start zabbix-agent
+  win_command: CMD /C "C:\Zabbix\bin\zabbix_agentd.exe --config C:\Zabbix\conf\zabbix_agentd.win.conf --start"

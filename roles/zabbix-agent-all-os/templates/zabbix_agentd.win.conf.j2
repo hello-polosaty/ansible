@@ -1,0 +1,21 @@
+# {{ ansible_managed }} 
+####################################
+LogFile=c:\Zabbix\zabbix_agentd.log
+LogFileSize=0
+DebugLevel=3
+EnableRemoteCommands=1
+LogRemoteCommands=0
+
+ListenPort={{ zabbix_agent_port }}
+ListenIP={{ ansible_ip_addresses[0] }}
+StartAgents=3
+Server={{ zabbix_server_ip }}
+ServerActive={{ zabbix_server_ip }}
+RefreshActiveChecks=60
+Hostname={{ ansible_hostname | lower }}
+HostMetadata=Windows
+BufferSend=5
+BufferSize=100
+MaxLinesPerSecond=20
+Timeout={{ zabbix_agent_timeout }}
+Include=c:\Zabbix\conf\conf.d\*.conf
