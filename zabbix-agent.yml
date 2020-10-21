@@ -1,5 +1,5 @@
 ---
-- name: ### INSTALL ZABBIX-AGENT ###
+- name: INSTALL ZABBIX-AGENT
   hosts: some_servers  
   
   roles:
