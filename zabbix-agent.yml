@@ -3,7 +3,6 @@
   hosts: some_servers  
   
   roles:
-
     - { role: zabbix-agent-all-os, become: yes, when: ansible_os_family == "RedHat" or ansible_os_family == "Sangoma" or ansible_os_family == "Debian" }
     - { role: zabbix-agent-all-os, when: ansible_os_family == "Windows" }
     
