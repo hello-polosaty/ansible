@@ -3,11 +3,11 @@
   hosts: all_servers
 
   tasks:
-    - block: ################################# ping windows servers ###########################################
+    - block: ping windows servers
        - win_ping: 
       when: ansible_os_family == "Windows"
 
-    - block: ################################# ping linux servers #############################################
+    - block: ping linux servers
        - become: yes 
          ping:
       when: ansible_os_family == "RedHat" or ansible_os_family == "Debian" or ansible_os_family == "Sangoma" 
